@@ -19,7 +19,7 @@ sudo apt-get update
 # 网络管理 || 运维工作
 # ifconfig
 echo "now install network manage tools...please wait a minute..."
-sudo apt-get install -y net-tools curl wget terminator unzip htop
+sudo apt-get install -y net-tools curl wget terminator unzip htop aria2
 
 echo "uninstall docker..."
 sudo apt-get remove docker docker-engine docker.io containerd runc
@@ -113,4 +113,71 @@ sudo systemctl enable v2raya.service
 # sudo dpkg -i linuxqq_2.0.0-b2-1084_amd64.deb
 # sudo dpkg -r linuxqq  #卸载QQ
 
+echo "please intput your git user.email and user.name"
+# Initial build of OrangeFox && aosp requirements,from orangefox(Building OrangeFox | OrangeFox Recovery wiki) 
+git config --global user.email "1787294587@qq.com"
+git config --global user.name "leeyangyangy"
+echo "clone orangefox scripts..."
+git clone https://gitlab.com/OrangeFox/misc/scripts
+cd scripts
+echo "install build aosp env requirements"
+sudo bash setup/android_build_env.sh
+sudo bash setup/install_android_sdk.sh
 echo "now,basic env already,if you found fail,please yourself install fail soft...thank you use my shell..."
+# echo "git clone https://gitlab.com/OrangeFox/misc/scripts" >> aosp.sh
+# echo "cd scripts"
+# echo "sudo bash setup/android_build_env.sh" >> aosp.sh
+# echo "sudo bash setup/install_android_sdk.sh" >> aosp.sh
+
+echo "======== create my sync shell script ========"
+echo "create android dir"
+mkdir ~/android
+mkdir sync_11_rec.sh
+mkdir sync_12.1_rec.sh
+echo "~/OrangeFox_sync/orangefox_sync.sh --branch 11.0 --path ~/android/fox_11.0" >> sync_11_rec.sh
+echo "~/OrangeFox_sync/orangefox_sync.sh --branch 12.1 --path ~/android/fox_12.1" >> sync_12.1_rec.sh
+sudo chmod a+x sync_11_rec.sh
+sudo chmod a+x sync_12.1_rec.sh
+mkdir ~/OrangeFox_sync && cd ~/OrangeFox_sync
+echo "======== clone sync shell scripts ========"
+git clone https://gitlab.com/OrangeFox/sync.git
+# ./sync_12.1_rec.sh
+# sync success after...https://wiki.orangefox.tech/en/dev/building
+# cd ~/OrangeFox # (or whichever directory has the synced manifest)
+#  source build/envsetup.sh
+#  export ALLOW_MISSING_DEPENDENCIES=true
+#  export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
+#  export LC_ALL="C"
+
+# for branches lower than 11.0
+#  lunch omni_<device>-eng && mka recoveryimage
+
+# for branches lower than 11.0, with A/B partitioning
+#  lunch omni_<device>-eng && mka bootimage
+
+# for the 11.0 (or higher) branch
+#  lunch twrp_<device>-eng && mka adbd recoveryimage
+
+# for the 11.0 (or higher) branch, with A/B partitioning
+#  lunch twrp_<device>-eng && mka adbd bootimage
+# LineageOS source
+# repo init -u https://github.com/LineageOS/android.git -b lineage-20.0 --git-lfs
+# repo sync
+
+# Pixel Experience
+
+# Initialize local repository
+# repo init -u https://github.com/PixelExperience/manifest -b thirteen
+
+# Sync
+# repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
+# Build
+
+# Set up environment
+# $ . build/envsetup.sh
+
+# Choose a target
+# $ lunch aosp_$device-userdebug
+
+# Build the code
+# $ mka bacon -j16
