@@ -32,8 +32,11 @@ fi
 
 # 第三步：链接
 echo "Setting up Vim alias..."
-alias vim="$INSTALL_PATH/bin/vim"
-echo "alias vim='$INSTALL_PATH/bin/vim'" >> ~/.bashrc
+# alias vim="$INSTALL_PATH/bin/vim"
+# echo "alias vim='$INSTALL_PATH/bin/vim'" >> ~/.bashrc
+
+alias vim='~/.local/bin/vim'
+echo "alias vim='~/.local/bin/vim'" >> ~/.bashrc
 
 # 第四步：检查 Vim 版本
 echo "Checking Vim version..."
