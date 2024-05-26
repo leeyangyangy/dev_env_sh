@@ -1,8 +1,13 @@
 #!/bin/bash
 
 # 定义 Vim 配置内容
-touch .vimrc
-echo set nocompatible
+# 检查 ~/.vimrc 文件是否存在，如果不存在则创建
+if [ ! -f ~/.vimrc ]; then
+    echo "Creating .vimrc file..."
+    touch ~/.vimrc
+fi
+VIM_CONFIG="$(cat << 'EOF'
+set nocompatible
 filetype on
  
 set rtp+=~/.vim/bundle/Vundle.vim
@@ -290,8 +295,9 @@ endfunction
 filetype plugin indent on 
 "打开文件类型检测, 加了这句才可以用智能补全
 set completeopt=longest,menu
-""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""" > .vimrc
-
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+EOF
+)"
 
 # 定义函数来检查命令是否执行成功
 check_command_success() {
@@ -352,5 +358,9 @@ check_command_success $? "Failed to write Vundle configuration to .vimrc."
 # 安装 Vim 插件
 vim +PluginInstall +qall
 check_command_success $? "Failed to install Vim plugins."
+
+# 将 Vim 配置内容添加到 ~/.vimrc 文件中
+echo "$VIM_CONFIG" >> ~/.vimrc
+echo "Vim configuration has been added to .vimrc"
 
 echo "Vim setup completed successfully."
