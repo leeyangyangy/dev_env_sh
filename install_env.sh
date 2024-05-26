@@ -1,12 +1,16 @@
 #!/bin/bash
 
+# 代理本机网络,使用脚本之前修改本机的代理地址,以免无法正常使用部分功能
+# export http://localhost:2080
+# export https://localhost:2080
+
 # 启用错误检测，命令失败则退出脚本
 set -e
 
 # 定义一个数组，用于存储需要安装的软件包列表
 packages=(
     "network-management" (
-        net-tools curl wget terminator htop aria2
+        net-tools curl wget htop aria2
     )
     "docker" (
         docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
@@ -76,40 +80,76 @@ sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/i
 echo "All packages installed successfully."
 
 echo "please intput your git user.email and user.name"
-# Initial build of OrangeFox && aosp requirements,from orangefox(Building OrangeFox | OrangeFox Recovery wiki) 
 git config --global user.email "1787294587@qq.com"
 git config --global user.name "leeyangyangy"
-echo "clone orangefox scripts..."
-git clone https://gitlab.com/OrangeFox/misc/scripts
-cd scripts
-echo "install build aosp env requirements"
-sudo bash setup/android_build_env.sh
-sudo bash setup/install_android_sdk.sh
-echo "now,basic env already,if you found fail,please yourself install fail soft...thank you use my shell..."
-# echo "git clone https://gitlab.com/OrangeFox/misc/scripts" >> aosp.sh
-# echo "cd scripts"
-# echo "sudo bash setup/android_build_env.sh" >> aosp.sh
-# echo "sudo bash setup/install_android_sdk.sh" >> aosp.sh
 
+# Initial build of OrangeFox && aosp requirements,from orangefox(Building OrangeFox | OrangeFox Recovery wiki) 
+# 克隆OrangeFox misc/scripts仓库
+echo "Cloning OrangeFox misc/scripts repository..."
+git clone https://gitlab.com/OrangeFox/misc/scripts.git
+if [ $? -ne 0 ]; then
+    echo "Failed to clone the repository."
+    exit 1
+fi
+
+# 进入scripts目录
+cd scripts
+if [ $? -ne 0 ]; then
+    echo "Failed to enter the scripts directory."
+    exit 1
+fi
+
+# 安装Android构建环境
+echo "Installing build AOSP environment requirements..."
+sudo bash setup/android_build_env.sh
+if [ $? -ne 0 ]; then
+    echo "Failed to setup android build environment."
+    exit 1
+fi
+
+# 安装Android SDK
+echo "Installing Android SDK..."
+sudo bash setup/install_android_sdk.sh
+if [ $? -ne 0 ]; then
+    echo "Failed to install Android SDK."
+    exit 1
+fi
+
+echo "All scripts executed successfully."
+
+# 定义一个函数来检查上一个命令是否成功执行
+check_error() {
+    if [ $1 -ne 0 ]; then
+        echo "Error occurred with $? at line $2."
+        exit $1
+    fi
+}
+
+# 创建android和OrangeFox_sync目录
 echo "======== create my sync shell script ========"
-echo "create android dir"
-mkdir ~/android
-mkdir sync_11_rec.sh
-mkdir sync_12.1_rec.sh
-echo "~/OrangeFox_sync/orangefox_sync.sh --branch 11.0 --path ~/android/fox_11.0" >> sync_11_rec.sh
-echo "~/OrangeFox_sync/orangefox_sync.sh --branch 12.1 --path ~/android/fox_12.1" >> sync_12.1_rec.sh
-sudo chmod a+x sync_11_rec.sh
-sudo chmod a+x sync_12.1_rec.sh
-mkdir ~/OrangeFox_sync && cd ~/OrangeFox_sync
+mkdir -p ~/android ~/OrangeFox_sync
+check_error $? ${LINENO}
+
+# 克隆sync脚本
 echo "======== clone sync shell scripts ========"
 git clone https://gitlab.com/OrangeFox/sync.git
-# ./sync_12.1_rec.sh
-# sync success after...https://wiki.orangefox.tech/en/dev/building
-# cd ~/OrangeFox # (or whichever directory has the synced manifest)
-#  source build/envsetup.sh
-#  export ALLOW_MISSING_DEPENDENCIES=true
-#  export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
-#  export LC_ALL="C"
+check_error $? ${LINENO}
+cd ~/OrangeFox_sync/sync/
+./orangefox_sync.sh --branch 12.1 --path ~/android/fox_12.1
+check_error $? ${LINENO}
+
+# 测试当前构建环境
+echo "======== test current build env ========"
+cd ~/android/fox_12.1
+git clone https://gitlab.com/OrangeFox/device/lavender.git  device/xiaomi/lavender
+check_error $? ${LINENO}
+
+echo "All operations completed successfully."
+
+source build/envsetup.sh
+export ALLOW_MISSING_DEPENDENCIES=true
+export FOX_USE_TWRP_RECOVERY_IMAGE_BUILDER=1
+export LC_ALL="C"
 
 # for branches lower than 11.0
 #  lunch omni_<device>-eng && mka recoveryimage
@@ -121,10 +161,29 @@ git clone https://gitlab.com/OrangeFox/sync.git
 #  lunch twrp_<device>-eng && mka adbd recoveryimage
 
 # for the 11.0 (or higher) branch, with A/B partitioning
-#  lunch twrp_<device>-eng && mka adbd bootimage
-# LineageOS source
-# repo init -u https://github.com/LineageOS/android.git -b lineage-20.0 --git-lfs
-# repo sync
+lunch twrp_lavender-eng && mka adbd bootimage
+
+# 切换到用户的android目录
+cd ~/android
+
+# 创建LineageOS 20的目录并进入
+mkdir -p los20 && cd los20
+
+# 初始化repo
+echo "Initializing LineageOS repository..."
+repo init -u https://github.com/LineageOS/android.git -b lineage-20.0 --git-lfs
+
+# 同步仓库
+echo "Syncing repositories..."
+repo sync -j12
+
+# 检查上一个命令的退出状态
+if [ $? -eq 0 ]; then
+    echo "LineageOS repositories synchronized successfully."
+else
+    echo "Failed to synchronize repositories."
+    exit 1
+fi
 
 # Pixel Experience
 
