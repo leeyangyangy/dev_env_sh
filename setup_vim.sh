@@ -341,15 +341,6 @@ if [ ! -f ~/.vimrc ]; then
     check_command_success $? "Failed to create .vimrc file."
 fi
 
-# 添加 Vundle 和 YouCompleteMe 配置到 .vimrc
-VUNDLE_CONFIG="set nocompatible\n\
-filetype off\n\
-set rtp+=~/.vim/bundle/Vundle.vim\n\
-call vundle#begin()\n\
-Plugin 'VundleVim/Vundle.vim'\n\
-call vundle#end()\n\
-filetype plugin indent on"
-
 echo "$VUNDLE_CONFIG" >> ~/.vimrc
 check_command_success $? "Failed to write Vundle configuration to .vimrc."
 
